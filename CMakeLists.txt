@@ -23,6 +23,7 @@ endif()
 # Application 
 add_executable(app
   src/main.cpp
+  src/engine.cpp
 )
 
 target_link_libraries(app
