@@ -8,9 +8,15 @@
 #include <iostream>
 
 float vertices[] = {
-    -0.5f, -0.25f, 0.0f, // bottom-left
-    0.5f,  -0.25f, 0.0f, // bottom-right
-    0.0f,  0.5f,   0.0f  // top-center
+    0.5f,  0.5f,  0.0f, // top right
+    0.5f,  -0.5f, 0.0f, // bottom right
+    -0.5f, -0.5f, 0.0f, // bottom left
+    -0.5f, 0.5f,  0.0f  // top left
+};
+unsigned int indices[] = {
+    // note that we start from 0!
+    0, 1, 3, // first triangle
+    1, 2, 3  // second triangle
 };
 
 bool Engine::init() {
@@ -40,12 +46,16 @@ bool Engine::init() {
   glViewport(0, 0, 800, 600);
 
   // TODO: Extract loading Vertex data to a class for main engine
-  unsigned int VBO;
   glGenVertexArrays(1, &this->VAO);
-  glGenBuffers(1, &VBO);
+  glGenBuffers(1, &this->VBO);
+  glGenBuffers(1, &this->EBO);
   glBindVertexArray(VAO);
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
+               GL_STATIC_DRAW);
 
   // Linking Vertex Attribs
 
@@ -103,7 +113,7 @@ void Engine::run() {
 
     glUseProgram(shaderProgram);
     glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
     glfwSwapBuffers(window);
     glfwPollEvents();

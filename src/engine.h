@@ -8,6 +8,8 @@ private:
   bool running = false;
   unsigned int shaderProgram;
   unsigned int VAO;
+  unsigned int VBO;
+  unsigned int EBO;
 
 public:
   bool init();
