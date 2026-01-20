@@ -1,5 +1,7 @@
 #include "engine.h"
+#include "model/mesh.h"
 #include "utils/shader_utils.h"
+#include <memory>
 
 // NOTE: Always include glad first before glfw, but in this case it works
 // because glad is included in utils/shader_utils.h
@@ -7,19 +9,26 @@
 #include <glad/glad.h>
 #include <iostream>
 
-float vertices[] = {
-    0.5f,  0.5f,  0.0f, // top right
-    0.5f,  -0.5f, 0.0f, // bottom right
-    -0.5f, -0.5f, 0.0f, // bottom left
-    -0.5f, 0.5f,  0.0f  // top left
-};
-unsigned int indices[] = {
-    // note that we start from 0!
-    0, 1, 3, // first triangle
-    1, 2, 3  // second triangle
-};
+// float vertices[] = {
+//     0.5f,  0.5f,  0.0f, // top right
+//     0.5f,  -0.5f, 0.0f, // bottom right
+//     -0.5f, -0.5f, 0.0f, // bottom left
+//     -0.5f, 0.5f,  0.0f  // top left
+// };
+// unsigned int indices[] = {
+//     // note that we start from 0!
+//     0, 1, 3, // first triangle
+//     1, 2, 3  // second triangle
+// };
+
+std::vector<float> vertices = {0.5f,  0.5f,  0.0f, 0.5f,  -0.5f, 0.0f,
+                               -0.5f, -0.5f, 0.0f, -0.5f, 0.5f,  0.0f};
+
+std::vector<unsigned int> indices = {0, 1, 3, 1, 2, 3};
 
 bool Engine::init() {
+
+  mesh = std::make_unique<Mesh>(vertices, indices);
   if (!glfwInit()) {
     std::cerr << "Failed to initialize GLFW\n";
     return false;
@@ -46,23 +55,8 @@ bool Engine::init() {
   glViewport(0, 0, 800, 600);
 
   // TODO: Extract loading Vertex data to a class for main engine
-  glGenVertexArrays(1, &this->VAO);
-  glGenBuffers(1, &this->VBO);
-  glGenBuffers(1, &this->EBO);
-  glBindVertexArray(VAO);
-  glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
-               GL_STATIC_DRAW);
-
-  // Linking Vertex Attribs
-
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
-  glEnableVertexAttribArray(0);
-
   // Shaders
+
   // TODO: Also Extract the Shader Code
   std::string vertexSourceStr = loadShaderFile("../res/shaders/def.vert");
   if (vertexSourceStr.empty()) {
@@ -112,8 +106,7 @@ void Engine::run() {
     glClear(GL_COLOR_BUFFER_BIT);
 
     glUseProgram(shaderProgram);
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    mesh->Draw();
 
     glfwSwapBuffers(window);
     glfwPollEvents();

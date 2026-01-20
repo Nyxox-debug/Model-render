@@ -1,5 +1,9 @@
 #pragma once
 
+#include <memory>
+
+class Mesh;
+
 struct GLFWwindow;
 
 class Engine {
@@ -7,9 +11,7 @@ private:
   GLFWwindow *window = nullptr;
   bool running = false;
   unsigned int shaderProgram;
-  unsigned int VAO;
-  unsigned int VBO;
-  unsigned int EBO;
+  std::unique_ptr<Mesh> mesh;
 
 public:
   bool init();
