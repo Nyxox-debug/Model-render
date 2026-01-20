@@ -14,6 +14,9 @@ private:
   std::unique_ptr<Mesh> mesh;
 
 public:
+  Engine();
+  ~Engine();
+
   bool init();
   void run();
   void shutdown();

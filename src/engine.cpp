@@ -9,6 +9,9 @@
 #include <glad/glad.h>
 #include <iostream>
 
+Engine::Engine() = default;
+Engine::~Engine() = default;
+
 // float vertices[] = {
 //     0.5f,  0.5f,  0.0f, // top right
 //     0.5f,  -0.5f, 0.0f, // bottom right
@@ -28,7 +31,6 @@ std::vector<unsigned int> indices = {0, 1, 3, 1, 2, 3};
 
 bool Engine::init() {
 
-  mesh = std::make_unique<Mesh>(vertices, indices);
   if (!glfwInit()) {
     std::cerr << "Failed to initialize GLFW\n";
     return false;
@@ -54,7 +56,7 @@ bool Engine::init() {
 
   glViewport(0, 0, 800, 600);
 
-  // TODO: Extract loading Vertex data to a class for main engine
+  mesh = std::make_unique<Mesh>(vertices, indices);
   // Shaders
 
   // TODO: Also Extract the Shader Code
