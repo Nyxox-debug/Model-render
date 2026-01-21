@@ -25,7 +25,7 @@ Mesh::Mesh(const std::vector<float> &vertices,
   glBindVertexArray(0);
 }
 
-void Mesh::Draw() {
+void Mesh::Draw() const {
   glBindVertexArray(VAO);
   glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
   glBindVertexArray(0);

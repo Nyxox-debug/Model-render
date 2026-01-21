@@ -3,6 +3,8 @@
 #include <memory>
 
 class Mesh;
+class Shader;
+class Model;
 
 struct GLFWwindow;
 
@@ -10,8 +12,8 @@ class Engine {
 private:
   GLFWwindow *window = nullptr;
   bool running = false;
-  unsigned int shaderProgram;
-  std::unique_ptr<Mesh> mesh;
+  std::unique_ptr<Model> model;
+  std::unique_ptr<Shader> shader;
 
 public:
   Engine();

@@ -10,5 +10,5 @@ private:
 public:
   Mesh(const std::vector<float> &vertices,
        const std::vector<unsigned int> &indices);
-  void Draw();
+  void Draw() const;
 };

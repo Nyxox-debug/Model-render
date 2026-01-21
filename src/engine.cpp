@@ -1,10 +1,11 @@
 #include "engine.h"
 #include "model/mesh.h"
-#include "utils/shader_utils.h"
+#include "model/model.h"
+#include "shader/shader.h"
 #include <memory>
 
-// NOTE: Always include glad first before glfw, but in this case it works
-// because glad is included in utils/shader_utils.h
+// NOTE: To future self, Always include glad first before glfw, but in this case
+// it works because glad is included in utils/shader_utils.h
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
 #include <iostream>
@@ -56,44 +57,20 @@ bool Engine::init() {
 
   glViewport(0, 0, 800, 600);
 
-  mesh = std::make_unique<Mesh>(vertices, indices);
+  // Mesh
+  // this->mesh = std::make_unique<Mesh>(vertices, indices);
+  // std::vector<Mesh> model = {*mesh};
+
+
+  std::vector<std::unique_ptr<Mesh>> meshes;
+  // NOTE: To self, you used make_unique because it create's an object owned by a `unique_ptr`, which is std::vector<std::unique_ptr<Mesh>> meshes;.
+  meshes.push_back(std::make_unique<Mesh>(vertices, indices));
+
+  this->model = std::make_unique<Model>(std::move(meshes));
+
   // Shaders
-
-  // TODO: Also Extract the Shader Code
-  std::string vertexSourceStr = loadShaderFile("../res/shaders/def.vert");
-  if (vertexSourceStr.empty()) {
-    std::cerr << "Failed to load vertex shader." << std::endl;
-  }
-
-  std::string fragmentSourceStr = loadShaderFile("../res/shaders/def.frag");
-  if (fragmentSourceStr.empty()) {
-    std::cerr << "Failed to load fragment shader." << std::endl;
-  }
-
-  const char *vertexSource = vertexSourceStr.c_str();
-  const char *fragmentSource = fragmentSourceStr.c_str();
-
-  unsigned int vertShader = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(vertShader, 1, &vertexSource, NULL);
-  glCompileShader(vertShader);
-
-  unsigned int fragShader;
-  fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fragShader, 1, &fragmentSource, NULL);
-  glCompileShader(fragShader);
-
-  // Optional Check for Vertex and Fragment Shader
-  checkShaderCompile(vertShader, "Vertex");
-  checkShaderCompile(fragShader, "Fragment");
-
-  this->shaderProgram = glCreateProgram();
-  glAttachShader(shaderProgram, vertShader);
-  glAttachShader(shaderProgram, fragShader);
-  glLinkProgram(shaderProgram);
-  checkProgramLink(shaderProgram);
-
-  glDeleteShader(vertShader);
-  glDeleteShader(fragShader);
+  this->shader = std::make_unique<Shader>("../res/shaders/def.vert",
+                                          "../res/shaders/def.frag");
 
   running = true;
   return true;
@@ -107,8 +84,9 @@ void Engine::run() {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glUseProgram(shaderProgram);
-    mesh->Draw();
+    // this->shader->use();
+    this->model->Draw(*this->shader);
+    // this->mesh->Draw();
 
     glfwSwapBuffers(window);
     glfwPollEvents();

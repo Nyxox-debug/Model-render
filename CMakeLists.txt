@@ -25,6 +25,8 @@ add_executable(app
   src/main.cpp
   src/engine.cpp
   src/model/mesh.cpp
+  src/model/model.cpp
+  src/shader/shader.cpp
 )
 
 target_link_libraries(app
