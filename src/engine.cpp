@@ -1,4 +1,6 @@
 #include "engine.h"
+#include "glm/ext/matrix_clip_space.hpp"
+#include "glm/ext/matrix_transform.hpp"
 #include "model/mesh.h"
 #include "model/model.h"
 #include "shader/shader.h"
@@ -61,12 +63,16 @@ bool Engine::init() {
   // this->mesh = std::make_unique<Mesh>(vertices, indices);
   // std::vector<Mesh> model = {*mesh};
 
-
   std::vector<std::unique_ptr<Mesh>> meshes;
-  // NOTE: To self, you used make_unique because it create's an object owned by a `unique_ptr`, which is std::vector<std::unique_ptr<Mesh>> meshes;.
+  // NOTE: To self, you used make_unique because it create's an object owned by
   meshes.push_back(std::make_unique<Mesh>(vertices, indices));
-
   this->model = std::make_unique<Model>(std::move(meshes));
+
+  // Transform
+  this->model->transform.position =
+      glm::vec3(0.0f, 0.0f, -0.5f);                  // just slightly back
+  this->model->transform.scale = glm::vec3(1.0f);    // default size
+  this->model->transform.rotation = glm::vec3(0.0f); // no rotation
 
   // Shaders
   this->shader = std::make_unique<Shader>("../res/shaders/def.vert",
@@ -83,6 +89,17 @@ void Engine::run() {
   while (!glfwWindowShouldClose(window)) {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    // Camera Setup
+    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -3));
+    glm::mat4 projection =
+        glm::perspective(glm::radians(45.f), 800.f / 600.f, 0.1f, 100.f);
+
+    shader->use();
+    shader->setMat4("view", view);
+    shader->setMat4("projection", projection);
+
+    model->Draw(*this->shader); // sets 'model' inside Model::Draw()
 
     // this->shader->use();
     this->model->Draw(*this->shader);

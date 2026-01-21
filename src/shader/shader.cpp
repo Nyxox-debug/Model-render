@@ -1,45 +1,53 @@
 #include "shader.h"
 #include "../utils/shader_utils.h"
-#include <string>
+#include <glad/glad.h>
+#include <glm/gtc/type_ptr.hpp>
+#include <iostream>
 
 Shader::Shader(const std::string &vertPath, const std::string &fragPath) {
+    std::string vertexSourceStr = loadShaderFile(vertPath);
+    std::string fragmentSourceStr = loadShaderFile(fragPath);
 
-  std::string vertexSourceStr = loadShaderFile(vertPath);
-  if (vertexSourceStr.empty()) {
-    std::cerr << "Failed to load vertex shader." << std::endl;
-  }
+    if (vertexSourceStr.empty() || fragmentSourceStr.empty()) {
+        std::cerr << "Failed to load shader files." << std::endl;
+    }
 
-  std::string fragmentSourceStr = loadShaderFile(fragPath);
-  if (fragmentSourceStr.empty()) {
-    std::cerr << "Failed to load fragment shader." << std::endl;
-  }
+    const char* vertexSource = vertexSourceStr.c_str();
+    const char* fragmentSource = fragmentSourceStr.c_str();
 
-  const char *vertexSource = vertexSourceStr.c_str();
-  const char *fragmentSource = fragmentSourceStr.c_str();
+    unsigned int vertShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertShader, 1, &vertexSource, NULL);
+    glCompileShader(vertShader);
 
-  unsigned int vertShader = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(vertShader, 1, &vertexSource, NULL);
-  glCompileShader(vertShader);
+    unsigned int fragShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragShader, 1, &fragmentSource, NULL);
+    glCompileShader(fragShader);
 
-  unsigned int fragShader;
-  fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fragShader, 1, &fragmentSource, NULL);
-  glCompileShader(fragShader);
+    checkShaderCompile(vertShader, "Vertex");
+    checkShaderCompile(fragShader, "Fragment");
 
-  // Optional Check for Vertex and Fragment Shader
-  checkShaderCompile(vertShader, "Vertex");
-  checkShaderCompile(fragShader, "Fragment");
+    program = glCreateProgram();
+    glAttachShader(program, vertShader);
+    glAttachShader(program, fragShader);
+    glLinkProgram(program);
+    checkProgramLink(program);
 
-  this->program = glCreateProgram();
-  glAttachShader(program, vertShader);
-  glAttachShader(program, fragShader);
-  glLinkProgram(program);
-  checkProgramLink(program);
-
-  glDeleteShader(vertShader);
-  glDeleteShader(fragShader);
+    glDeleteShader(vertShader);
+    glDeleteShader(fragShader);
 }
 
-void Shader::use() const { glUseProgram(this->program); }
+Shader::~Shader() {
+    glDeleteProgram(program);
+}
 
-Shader::~Shader() { glDeleteProgram(this->program); }
+void Shader::use() const {
+    glUseProgram(program);
+}
+
+void Shader::setMat4(const std::string &name, const glm::mat4 &mat) const {
+    glUniformMatrix4fv(glGetUniformLocation(program, name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
+}
+
+void Shader::setVec3(const std::string &name, const glm::vec3 &vec) const {
+    glUniform3fv(glGetUniformLocation(program, name.c_str()), 1, glm::value_ptr(vec));
+}

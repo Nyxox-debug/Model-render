@@ -35,3 +35,7 @@ target_link_libraries(app
     glfw
     OpenGL::GL
 )
+
+# GLM
+# FIX: Not sure yet
+include_directories(${CMAKE_SOURCE_DIR}/include)
