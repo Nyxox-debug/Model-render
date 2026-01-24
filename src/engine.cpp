@@ -8,6 +8,7 @@
 #include <glad/glad.h>
 #include <iostream>
 #include <memory>
+#include <numeric>
 
 Engine::Engine() = default;
 Engine::~Engine() = default;
@@ -114,35 +115,88 @@ bool Engine::init() {
   // std::vector<unsigned int> indices = {0, 1, 3, 1, 2, 3};
 
   // NOTE: Cube
-  std::vector<float> vertices = {
-      // x,     y,     z
-      -0.5f, -0.5f, -0.5f, // 0
-      0.5f,  -0.5f, -0.5f, // 1
-      0.5f,  0.5f,  -0.5f, // 2
-      -0.5f, 0.5f,  -0.5f, // 3
-      -0.5f, -0.5f, 0.5f,  // 4
-      0.5f,  -0.5f, 0.5f,  // 5
-      0.5f,  0.5f,  0.5f,  // 6
-      -0.5f, 0.5f,  0.5f   // 7
+  // std::vector<float> vertices = {
+  //     // x,     y,     z
+  //     -0.5f, -0.5f, -0.5f, // 0
+  //     0.5f,  -0.5f, -0.5f, // 1
+  //     0.5f,  0.5f,  -0.5f, // 2
+  //     -0.5f, 0.5f,  -0.5f, // 3
+  //     -0.5f, -0.5f, 0.5f,  // 4
+  //     0.5f,  -0.5f, 0.5f,  // 5
+  //     0.5f,  0.5f,  0.5f,  // 6
+  //     -0.5f, 0.5f,  0.5f   // 7
+  // };
+  //
+  // // 12 triangles (36 indices)
+  // std::vector<unsigned int> indices = {// back face
+  //                                      0, 1, 2, 2, 3, 0,
+  //                                      // front face
+  //                                      4, 5, 6, 6, 7, 4,
+  //                                      // left face
+  //                                      4, 0, 3, 3, 7, 4,
+  //                                      // right face
+  //                                      1, 5, 6, 6, 2, 1,
+  //                                      // bottom face
+  //                                      4, 5, 1, 1, 0, 4,
+  //                                      // top face
+  //                                      3, 2, 6, 6, 7, 3};
+
+  std::vector<Vertex> vertices = {
+      // BACK face (−Z)
+      {{-0.5f, -0.5f, -0.5f}, {0, 0, -1}, {0, 0}},
+      {{0.5f, -0.5f, -0.5f}, {0, 0, -1}, {1, 0}},
+      {{0.5f, 0.5f, -0.5f}, {0, 0, -1}, {1, 1}},
+      {{0.5f, 0.5f, -0.5f}, {0, 0, -1}, {1, 1}},
+      {{-0.5f, 0.5f, -0.5f}, {0, 0, -1}, {0, 1}},
+      {{-0.5f, -0.5f, -0.5f}, {0, 0, -1}, {0, 0}},
+
+      // FRONT face (+Z)
+      {{-0.5f, -0.5f, 0.5f}, {0, 0, 1}, {0, 0}},
+      {{0.5f, -0.5f, 0.5f}, {0, 0, 1}, {1, 0}},
+      {{0.5f, 0.5f, 0.5f}, {0, 0, 1}, {1, 1}},
+      {{0.5f, 0.5f, 0.5f}, {0, 0, 1}, {1, 1}},
+      {{-0.5f, 0.5f, 0.5f}, {0, 0, 1}, {0, 1}},
+      {{-0.5f, -0.5f, 0.5f}, {0, 0, 1}, {0, 0}},
+
+      // LEFT face (−X)
+      {{-0.5f, 0.5f, 0.5f}, {-1, 0, 0}, {1, 0}},
+      {{-0.5f, 0.5f, -0.5f}, {-1, 0, 0}, {1, 1}},
+      {{-0.5f, -0.5f, -0.5f}, {-1, 0, 0}, {0, 1}},
+      {{-0.5f, -0.5f, -0.5f}, {-1, 0, 0}, {0, 1}},
+      {{-0.5f, -0.5f, 0.5f}, {-1, 0, 0}, {0, 0}},
+      {{-0.5f, 0.5f, 0.5f}, {-1, 0, 0}, {1, 0}},
+
+      // RIGHT face (+X)
+      {{0.5f, 0.5f, 0.5f}, {1, 0, 0}, {1, 0}},
+      {{0.5f, 0.5f, -0.5f}, {1, 0, 0}, {1, 1}},
+      {{0.5f, -0.5f, -0.5f}, {1, 0, 0}, {0, 1}},
+      {{0.5f, -0.5f, -0.5f}, {1, 0, 0}, {0, 1}},
+      {{0.5f, -0.5f, 0.5f}, {1, 0, 0}, {0, 0}},
+      {{0.5f, 0.5f, 0.5f}, {1, 0, 0}, {1, 0}},
+
+      // BOTTOM face (−Y)
+      {{-0.5f, -0.5f, -0.5f}, {0, -1, 0}, {0, 1}},
+      {{0.5f, -0.5f, -0.5f}, {0, -1, 0}, {1, 1}},
+      {{0.5f, -0.5f, 0.5f}, {0, -1, 0}, {1, 0}},
+      {{0.5f, -0.5f, 0.5f}, {0, -1, 0}, {1, 0}},
+      {{-0.5f, -0.5f, 0.5f}, {0, -1, 0}, {0, 0}},
+      {{-0.5f, -0.5f, -0.5f}, {0, -1, 0}, {0, 1}},
+
+      // TOP face (+Y)
+      {{-0.5f, 0.5f, -0.5f}, {0, 1, 0}, {0, 1}},
+      {{0.5f, 0.5f, -0.5f}, {0, 1, 0}, {1, 1}},
+      {{0.5f, 0.5f, 0.5f}, {0, 1, 0}, {1, 0}},
+      {{0.5f, 0.5f, 0.5f}, {0, 1, 0}, {1, 0}},
+      {{-0.5f, 0.5f, 0.5f}, {0, 1, 0}, {0, 0}},
+      {{-0.5f, 0.5f, -0.5f}, {0, 1, 0}, {0, 1}},
   };
 
-  // 12 triangles (36 indices)
-  std::vector<unsigned int> indices = {// back face
-                                       0, 1, 2, 2, 3, 0,
-                                       // front face
-                                       4, 5, 6, 6, 7, 4,
-                                       // left face
-                                       4, 0, 3, 3, 7, 4,
-                                       // right face
-                                       1, 5, 6, 6, 2, 1,
-                                       // bottom face
-                                       4, 5, 1, 1, 0, 4,
-                                       // top face
-                                       3, 2, 6, 6, 7, 3};
+  std::vector<unsigned int> indices(36);
+  std::iota(indices.begin(), indices.end(), 0);
 
-  std::vector<std::unique_ptr<Mesh>> meshes;
-  meshes.push_back(std::make_unique<Mesh>(vertices, indices));
-  model = std::make_unique<Model>(std::move(meshes));
+  // std::vector<std::unique_ptr<Mesh>> meshes;
+  // meshes.push_back(std::make_unique<Mesh>(vertices, indices));
+  model = std::make_unique<Model>("../res/models/backpack/backpack.obj");
 
   // To place model origin at center
   model->transform.position = glm::vec3(0.0f);
