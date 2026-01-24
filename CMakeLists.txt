@@ -5,6 +5,7 @@ project(3dWorld LANGUAGES C CXX)
 
 find_package(OpenGL REQUIRED)
 find_package(glfw3 3.3 REQUIRED)
+find_package(assimp REQUIRED)
 
 # GLAD 
 add_library(glad
@@ -34,8 +35,12 @@ target_link_libraries(app
     glad
     glfw
     OpenGL::GL
+    assimp::assimp
 )
 
 # GLM
-# FIX: Not sure yet
+# FIX: Not sure yet if glad, khr and glm should be in include dir 
 include_directories(${CMAKE_SOURCE_DIR}/include)
+
+# NOTE: If I want to make assimp available to my includes, but modern cpp handles this automatically
+# target_include_directories(app PRIVATE ${ASSIMP_INCLUDE_DIRS})
