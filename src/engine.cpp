@@ -44,8 +44,7 @@ void Engine::mouse_callback(GLFWwindow *window, double xpos, double ypos) {
   }
 
   float xoffset = xpos - eng->lastX;
-  float yoffset =
-      eng->lastY - ypos; // reversed since y-coords go from bottom to top
+  float yoffset = eng->lastY - ypos; // reversed since y-coords go bottom to top
   eng->lastX = xpos;
   eng->lastY = ypos;
 
@@ -66,6 +65,11 @@ void Engine::mouse_callback(GLFWwindow *window, double xpos, double ypos) {
   front.y = sin(glm::radians(eng->pitch));
   front.z = sin(glm::radians(eng->yaw)) * cos(glm::radians(eng->pitch));
   eng->cameraFront = glm::normalize(front);
+}
+
+// Forgot to add framebuffer_size_callback
+void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+  glViewport(0, 0, width, height); // Fixes “subwindow” effect on resizing
 }
 
 bool Engine::init() {
@@ -92,24 +96,17 @@ bool Engine::init() {
     return false;
   }
 
-  glViewport(0, 0, 800, 600);
+  glEnable(GL_DEPTH_TEST);
 
-  // Mouse
+  int width, height;
+  glfwGetFramebufferSize(window, &width, &height);
+  glViewport(0, 0, width, height);
+
+  glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
   glfwSetWindowUserPointer(window, this);
   glfwSetCursorPosCallback(window, Engine::mouse_callback);
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // hide cursor
-
-  // float vertices[] = {
-  //     0.5f,  0.5f,  0.0f, // top right
-  //     0.5f,  -0.5f, 0.0f, // bottom right
-  //     -0.5f, -0.5f, 0.0f, // bottom left
-  //     -0.5f, 0.5f,  0.0f  // top left
-  // };
-  // unsigned int indices[] = {
-  //     // note that we start from 0!
-  //     0, 1, 3, // first triangle
-  //     1, 2, 3  // second triangle
-  // };
 
   std::vector<float> vertices = {0.5f,  0.5f,  0.0f, 0.5f,  -0.5f, 0.0f,
                                  -0.5f, -0.5f, 0.0f, -0.5f, 0.5f,  0.0f};
@@ -117,14 +114,15 @@ bool Engine::init() {
 
   std::vector<std::unique_ptr<Mesh>> meshes;
   meshes.push_back(std::make_unique<Mesh>(vertices, indices));
-  this->model = std::make_unique<Model>(std::move(meshes));
+  model = std::make_unique<Model>(std::move(meshes));
 
-  this->model->transform.position = glm::vec3(2.0f, 1.0f, -3.5f);
-  this->model->transform.scale = glm::vec3(1.0f, 2.0f, 0.5f);
-  this->model->transform.rotation = glm::vec3(30.0f, 45.0f, 60.0f);
+  // To place model origin at center
+  model->transform.position = glm::vec3(0.0f);
+  model->transform.scale = glm::vec3(1.0f);
+  model->transform.rotation = glm::vec3(0.0f);
 
-  this->shader = std::make_unique<Shader>("../res/shaders/def.vert",
-                                          "../res/shaders/def.frag");
+  shader = std::make_unique<Shader>("../res/shaders/def.vert",
+                                    "../res/shaders/def.frag");
 
   running = true;
   return true;
@@ -141,8 +139,11 @@ void Engine::run() {
     processInput();
 
     glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-    glm::mat4 projection =
-        glm::perspective(glm::radians(45.f), 800.f / 600.f, 0.1f, 100.f);
+
+    int width, height;
+    glfwGetFramebufferSize(window, &width, &height);
+    glm::mat4 projection = glm::perspective(glm::radians(45.f),
+                                            (float)width / height, 0.1f, 100.f);
 
     shader->use();
     shader->setMat4("view", view);
