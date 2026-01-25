@@ -21,7 +21,7 @@ private:
 
   // Camera and Input
   void processInput();
-  glm::vec3 cameraPos = glm::vec3(2.0f, 2.0f, 3.0f);
+  glm::vec3 cameraPos = glm::vec3(5.0f, 5.0f, 3.0f);
   glm::vec3 cameraFront =
       glm::normalize(glm::vec3(0.0f) - cameraPos); // Look at origin
   glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);

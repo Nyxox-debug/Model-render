@@ -1,14 +1,14 @@
 #include "engine.h"
 
 int main() {
-    Engine engine;
+  Engine engine;
 
-    if (!engine.init()) {
-        return -1;
-    }
+  if (!engine.init()) {
+    return -1;
+  }
 
-    engine.run();
-    engine.shutdown();
+  engine.run();
+  engine.shutdown();
 
-    return 0;
+  return 0;
 }

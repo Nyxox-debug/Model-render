@@ -9,15 +9,24 @@
 
 class Model {
 public:
-  Model(const std::string &path);
+  Model(const std::string &path, bool gamma = false);
   void Draw(Shader &shader) const;
+  bool gammaCorrection;
+  glm::vec3 getCenter() const { return center; }
+  float getRadius() const { return radius; }
 
   Transform transform;
+
+  void computeBoundingBox();
 
 private:
   std::vector<std::unique_ptr<Mesh>> meshes;
   std::vector<Texture> textures_loaded;
   std::string directory;
+  glm::vec3 minBounds;
+  glm::vec3 maxBounds;
+  glm::vec3 center;
+  float radius;
 
   void loadModel(const std::string &path);
   void processNode(aiNode *node, const aiScene *scene);

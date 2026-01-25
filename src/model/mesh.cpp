@@ -2,10 +2,19 @@
 #include "../shader/shader.h"
 #include <cstddef>
 
+// Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices,
+//            std::vector<Texture> textures)
+//     : vertices(std::move(vertices)), indices(std::move(indices)),
+//       textures(std::move(textures)) {
+//   setupMesh();
+// }
+
 Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices,
-           std::vector<Texture> textures)
-    : vertices(std::move(vertices)), indices(std::move(indices)),
-      textures(std::move(textures)) {
+           std::vector<Texture> textures) {
+  this->vertices = vertices;
+  this->indices = indices;
+  this->textures = textures;
+
   setupMesh();
 }
 
@@ -15,110 +24,85 @@ void Mesh::setupMesh() {
   glGenBuffers(1, &EBO);
 
   glBindVertexArray(VAO);
-
+  // load data into vertex buffers
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex),
-               vertices.data(), GL_STATIC_DRAW);
+  // A great thing about structs is that their memory layout is sequential for
+  // all its items. The effect is that we can simply pass a pointer to the
+  // struct and it translates perfectly to a glm::vec3/2 array which again
+  // translates to 3/2 floats which translates to a byte array.
+  glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0],
+               GL_STATIC_DRAW);
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int),
-               indices.data(), GL_STATIC_DRAW);
+               &indices[0], GL_STATIC_DRAW);
 
-  // positions
+  // set the vertex attribute pointers
+  // vertex Positions
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
-
-  // normals
+  // vertex normals
   glEnableVertexAttribArray(1);
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                         (void *)offsetof(Vertex, Normal));
-
-  // texcoords
+  // vertex texture coords
   glEnableVertexAttribArray(2);
   glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                         (void *)offsetof(Vertex, TexCoords));
+  // vertex tangent
+  glEnableVertexAttribArray(3);
+  glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                        (void *)offsetof(Vertex, Tangent));
+  // vertex bitangent
+  glEnableVertexAttribArray(4);
+  glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                        (void *)offsetof(Vertex, Bitangent));
+  // ids
+  glEnableVertexAttribArray(5);
+  glVertexAttribIPointer(5, 4, GL_INT, sizeof(Vertex),
+                         (void *)offsetof(Vertex, m_BoneIDs));
 
+  // weights
+  glEnableVertexAttribArray(6);
+  glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                        (void *)offsetof(Vertex, m_Weights));
   glBindVertexArray(0);
 }
 
 void Mesh::Draw(Shader &shader) const {
+  // bind appropriate textures
   unsigned int diffuseNr = 1;
   unsigned int specularNr = 1;
-
+  unsigned int normalNr = 1;
+  unsigned int heightNr = 1;
   for (unsigned int i = 0; i < textures.size(); i++) {
-    glActiveTexture(GL_TEXTURE0 + i);
-
+    glActiveTexture(GL_TEXTURE0 +
+                    i); // active proper texture unit before binding
+                        // retrieve texture number (the N in diffuse_textureN)
     std::string number;
     std::string name = textures[i].type;
-
     if (name == "texture_diffuse")
       number = std::to_string(diffuseNr++);
     else if (name == "texture_specular")
-      number = std::to_string(specularNr++);
+      number = std::to_string(specularNr++); // transfer unsigned int to string
+    else if (name == "texture_normal")
+      number = std::to_string(normalNr++); // transfer unsigned int to string
+    else if (name == "texture_height")
+      number = std::to_string(heightNr++); // transfer unsigned int to string
 
-    shader.setInt("material." + name + number, i);
+    // now set the sampler to the correct texture unit
+    shader.setInt(name + number, i);
+    // glUniform1i(glGetUniformLocation(shader.ID, (name + number).c_str()), i);
+    // and finally bind the texture
     glBindTexture(GL_TEXTURE_2D, textures[i].id);
   }
 
+  // draw mesh
   glBindVertexArray(VAO);
   glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()),
                  GL_UNSIGNED_INT, 0);
   glBindVertexArray(0);
+
+  // always good practice to set everything back to defaults once configured.
   glActiveTexture(GL_TEXTURE0);
 }
-
-// #include "shader.h"
-// #include "../utils/shader_utils.h"
-// #include <glad/glad.h>
-// #include <glm/gtc/type_ptr.hpp>
-// #include <iostream>
-//
-// Shader::Shader(const std::string &vertPath, const std::string &fragPath) {
-//     std::string vertexSourceStr = loadShaderFile(vertPath);
-//     std::string fragmentSourceStr = loadShaderFile(fragPath);
-//
-//     if (vertexSourceStr.empty() || fragmentSourceStr.empty()) {
-//         std::cerr << "Failed to load shader files." << std::endl;
-//     }
-//
-//     const char* vertexSource = vertexSourceStr.c_str();
-//     const char* fragmentSource = fragmentSourceStr.c_str();
-//
-//     unsigned int vertShader = glCreateShader(GL_VERTEX_SHADER);
-//     glShaderSource(vertShader, 1, &vertexSource, NULL);
-//     glCompileShader(vertShader);
-//
-//     unsigned int fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-//     glShaderSource(fragShader, 1, &fragmentSource, NULL);
-//     glCompileShader(fragShader);
-//
-//     checkShaderCompile(vertShader, "Vertex");
-//     checkShaderCompile(fragShader, "Fragment");
-//
-//     program = glCreateProgram();
-//     glAttachShader(program, vertShader);
-//     glAttachShader(program, fragShader);
-//     glLinkProgram(program);
-//     checkProgramLink(program);
-//
-//     glDeleteShader(vertShader);
-//     glDeleteShader(fragShader);
-// }
-//
-// Shader::~Shader() {
-//     glDeleteProgram(program);
-// }
-//
-// void Shader::use() const {
-//     glUseProgram(program);
-// }
-//
-// void Shader::setMat4(const std::string &name, const glm::mat4 &mat) const {
-//     glUniformMatrix4fv(glGetUniformLocation(program, name.c_str()), 1,
-//     GL_FALSE, glm::value_ptr(mat));
-// }
-//
-// void Shader::setVec3(const std::string &name, const glm::vec3 &vec) const {
-//     glUniform3fv(glGetUniformLocation(program, name.c_str()), 1,
-//     glm::value_ptr(vec));
-// }

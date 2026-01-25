@@ -27,7 +27,6 @@ add_executable(app
   src/engine.cpp
   src/model/mesh.cpp
   src/model/model.cpp
-  src/model/texture.cpp
   src/shader/shader.cpp
 )
 

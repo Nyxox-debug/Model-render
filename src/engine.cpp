@@ -13,6 +13,75 @@
 Engine::Engine() = default;
 Engine::~Engine() = default;
 
+void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+  glViewport(0, 0, width, height); // Fixes “subwindow” effect on resizing
+}
+
+bool Engine::init() {
+  if (!glfwInit()) {
+    std::cerr << "Failed to initialize GLFW\n";
+    return false;
+  }
+
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+  window = glfwCreateWindow(800, 600, "Engine Window", nullptr, nullptr);
+  if (!window) {
+    std::cerr << "Failed to create window\n";
+    glfwTerminate();
+    return false;
+  }
+
+  glfwMakeContextCurrent(window);
+
+  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+    std::cerr << "Failed to initialize GLAD\n";
+    return false;
+  }
+
+  glEnable(GL_DEPTH_TEST);
+
+  int width, height;
+  glfwGetFramebufferSize(window, &width, &height);
+  glViewport(0, 0, width, height);
+
+  glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+  glfwSetWindowUserPointer(window, this);
+  glfwSetCursorPosCallback(window, Engine::mouse_callback);
+  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // hide cursor
+
+  std::vector<unsigned int> indices(36);
+  std::iota(indices.begin(), indices.end(), 0);
+
+  // std::vector<std::unique_ptr<Mesh>> meshes;
+  // meshes.push_back(std::make_unique<Mesh>(vertices, indices));
+  model = std::make_unique<Model>("../res/models/skull/skull.obj");
+  model->computeBoundingBox();
+
+  // To place model origin at center
+  model->transform.position = glm::vec3(0.0f);
+  model->transform.scale = glm::vec3(1.0f);
+  model->transform.rotation = glm::vec3(0.0f);
+
+  // Adjust camera to fit model
+  glm::vec3 modelCenter = model->getCenter();
+  float modelRadius = model->getRadius();
+
+  // Move camera back along diagonal to fit model
+  cameraPos =
+      modelCenter + glm::vec3(1.5f * modelRadius); // tweak factor if needed
+  cameraFront = glm::normalize(modelCenter - cameraPos);
+
+  shader = std::make_unique<Shader>("../res/shaders/def.vert",
+                                    "../res/shaders/def.frag");
+
+  running = true;
+  return true;
+}
+
 void Engine::processInput() {
   float currentFrame = glfwGetTime();
   deltaTime = currentFrame - lastFrame;
@@ -68,66 +137,6 @@ void Engine::mouse_callback(GLFWwindow *window, double xpos, double ypos) {
   eng->cameraFront = glm::normalize(front);
 }
 
-// Forgot to add framebuffer_size_callback
-void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-  glViewport(0, 0, width, height); // Fixes “subwindow” effect on resizing
-}
-
-bool Engine::init() {
-  if (!glfwInit()) {
-    std::cerr << "Failed to initialize GLFW\n";
-    return false;
-  }
-
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-  window = glfwCreateWindow(800, 600, "Engine Window", nullptr, nullptr);
-  if (!window) {
-    std::cerr << "Failed to create window\n";
-    glfwTerminate();
-    return false;
-  }
-
-  glfwMakeContextCurrent(window);
-
-  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-    std::cerr << "Failed to initialize GLAD\n";
-    return false;
-  }
-
-  glEnable(GL_DEPTH_TEST);
-
-  int width, height;
-  glfwGetFramebufferSize(window, &width, &height);
-  glViewport(0, 0, width, height);
-
-  glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-  glfwSetWindowUserPointer(window, this);
-  glfwSetCursorPosCallback(window, Engine::mouse_callback);
-  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // hide cursor
-
-  std::vector<unsigned int> indices(36);
-  std::iota(indices.begin(), indices.end(), 0);
-
-  // std::vector<std::unique_ptr<Mesh>> meshes;
-  // meshes.push_back(std::make_unique<Mesh>(vertices, indices));
-  model = std::make_unique<Model>("../res/models/backpack/backpack.obj");
-
-  // To place model origin at center
-  model->transform.position = glm::vec3(0.0f);
-  model->transform.scale = glm::vec3(1.0f);
-  model->transform.rotation = glm::vec3(0.0f);
-
-  shader = std::make_unique<Shader>("../res/shaders/def.vert",
-                                    "../res/shaders/def.frag");
-
-  running = true;
-  return true;
-}
-
 void Engine::run() {
   if (!running)
     return;
@@ -164,4 +173,3 @@ void Engine::shutdown() {
   glfwTerminate();
   running = false;
 }
-
