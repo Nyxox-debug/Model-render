@@ -58,7 +58,7 @@ bool Engine::init() {
 
   // std::vector<std::unique_ptr<Mesh>> meshes;
   // meshes.push_back(std::make_unique<Mesh>(vertices, indices));
-  model = std::make_unique<Model>("../res/models/skull/skull.obj");
+  model = std::make_unique<Model>("../res/models/backpack/backpack.obj");
   model->computeBoundingBox();
 
   // To place model origin at center
@@ -87,7 +87,7 @@ void Engine::processInput() {
   deltaTime = currentFrame - lastFrame;
   lastFrame = currentFrame;
 
-  float cameraSpeed = 2.5f * deltaTime;
+  float cameraSpeed = 10.5f * deltaTime;
 
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     cameraPos += cameraSpeed * cameraFront;

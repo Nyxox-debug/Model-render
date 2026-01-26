@@ -70,6 +70,13 @@ void Mesh::setupMesh() {
 }
 
 void Mesh::Draw(Shader &shader) const {
+  shader.use();
+  if (textures.empty()) {
+    shader.setBool("hasTexture", false);
+    shader.setVec3("fallbackColor", glm::vec3(0.7f, 0.7f, 0.7f));
+  } else {
+    shader.setBool("hasTexture", true);
+  }
   // bind appropriate textures
   unsigned int diffuseNr = 1;
   unsigned int specularNr = 1;

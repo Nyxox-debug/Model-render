@@ -56,3 +56,8 @@ void Shader::setVec3(const std::string &name, const glm::vec3 &vec) const {
 void Shader::setInt(const std::string &name, int value) const {
   glUniform1i(glGetUniformLocation(program, name.c_str()), value);
 }
+
+void Shader::setBool(const std::string &name, bool value) const {
+  glUniform1i(glGetUniformLocation(program, name.c_str()),
+              static_cast<int>(value));
+}
