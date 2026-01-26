@@ -21,8 +21,8 @@ It can load models, apply textures, and move the camera around. Pretty basic but
 
 Here are a couple of screenshots of models I rendered:
 
-![Backpack Model](docs/backpack.png)
 ![Skull Model](docs/skull.png)
+![Backpack Model](docs/backpack.png)
 
 > Screenshots are in the `docs/` folder.
 
