@@ -86,3 +86,5 @@ Make sure the program can see the `res/` folder with the models and shaders.
 ## Why I Made This
 
 Honestly, just to learn OpenGL better. I wanted to see how vertex data, textures, and shaders all work together, without any engine hiding it. It's simple, fun, and you can play with it if you want.
+
+> **NOTE:** You should have assimp installed
