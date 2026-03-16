@@ -18,7 +18,7 @@
 # Compiled objects
 # ===============================
 *.o
-*.obj
+# *.obj Commented this out for backpack.ob 
 *.so
 *.a
 *.dll
@@ -61,3 +61,4 @@ compile_commands.json
 *.glsl
 
 p.md
+.cache/

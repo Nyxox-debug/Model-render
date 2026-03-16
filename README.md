@@ -65,10 +65,12 @@ Here are a couple of screenshots of models I rendered:
 ## How to Build
 
 ```bash
-mkdir build
-cd build
 cmake --preset linux-make
-make
+mkdir -p build
+cd build
+cmake ..
+cmake --build .
+./app
 ```
 
 ---
