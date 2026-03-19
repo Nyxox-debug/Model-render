@@ -1,16 +1,18 @@
 #include "model.h"
 #include "glm/ext/matrix_transform.hpp"
+#include "model.h"
 #include "texture.h"
+#include <algorithm>
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 
 extern unsigned int TextureFromFile(const char *path,
                                     const std::string &directory, bool gamma);
 
-Model::Model(const std::string &path, bool gamma)
-    : gammaCorrection(gamma) {
+Model::Model(const std::string &path, bool gamma) : gammaCorrection(gamma) {
   loadModel(path);
 }
 
@@ -150,36 +152,31 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial *mat,
   return textures;
 }
 
-// In model.cpp
-#include "model.h"
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <algorithm>
-
 void Model::computeBoundingBox() {
-    if (meshes.empty()) return;
+  if (meshes.empty())
+    return;
 
-    bool firstVertex = true;
+  bool firstVertex = true;
 
-    for (const auto& mesh : meshes) {
-        for (const auto& vertex : mesh->vertices) {
-            const glm::vec3& pos = vertex.Position;
-            if (firstVertex) {
-                minBounds = maxBounds = pos;
-                firstVertex = false;
-            } else {
-                minBounds.x = std::min(minBounds.x, pos.x);
-                minBounds.y = std::min(minBounds.y, pos.y);
-                minBounds.z = std::min(minBounds.z, pos.z);
+  for (const auto &mesh : meshes) {
+    for (const auto &vertex : mesh->vertices) {
+      const glm::vec3 &pos = vertex.Position;
+      if (firstVertex) {
+        minBounds = maxBounds = pos;
+        firstVertex = false;
+      } else {
+        minBounds.x = std::min(minBounds.x, pos.x);
+        minBounds.y = std::min(minBounds.y, pos.y);
+        minBounds.z = std::min(minBounds.z, pos.z);
 
-                maxBounds.x = std::max(maxBounds.x, pos.x);
-                maxBounds.y = std::max(maxBounds.y, pos.y);
-                maxBounds.z = std::max(maxBounds.z, pos.z);
-            }
-        }
+        maxBounds.x = std::max(maxBounds.x, pos.x);
+        maxBounds.y = std::max(maxBounds.y, pos.y);
+        maxBounds.z = std::max(maxBounds.z, pos.z);
+      }
     }
+  }
 
-    // Compute center and radius
-    center = (minBounds + maxBounds) / 2.0f;
-    radius = glm::length(maxBounds - center);
+  // Compute center and radius
+  center = (minBounds + maxBounds) / 2.0f;
+  radius = glm::length(maxBounds - center);
 }
